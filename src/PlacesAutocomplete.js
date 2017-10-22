@@ -225,6 +225,7 @@ class PlacesAutocomplete extends Component {
   getInputProps() {
     const defaultInputProps = {
       type: "text",
+      autoComplete: "off",
     }
 
     return {
@@ -265,11 +266,25 @@ class PlacesAutocomplete extends Component {
                 key={p.placeId}
                 onMouseOver={() => this.setActiveItemAtIndex(p.index)}
                 onMouseDown={() => this.selectAddress(p.suggestion, p.placeId)}
+                onTouchStart={() => this.setActiveItemAtIndex(p.index)}
+                onTouchEnd={() => this.selectAddress(p.suggestion, p.placeId)}
                 style={ p.active ? this.inlineStyleFor('autocompleteItem', 'autocompleteItemActive') :this.inlineStyleFor('autocompleteItem') }
                 className={ p.active ? this.classNameFor('autocompleteItem', 'autocompleteItemActive') : this.classNameFor('autocompleteItem') }>
                 {this.props.autocompleteItem({ suggestion: p.suggestion, formattedSuggestion: p.formattedSuggestion })}
               </div>
             ))}
+            {this.props.googleLogo && (
+              <div
+                id="PlacesAutocomplete__google-logo"
+                style={this.inlineStyleFor('googleLogoContainer')}
+                className={this.classNameFor('googleLogoContainer')}>
+                <img
+                  src={require(`./images/powered_by_google_${this.props.googleLogoType}.png`)}
+                  style={this.inlineStyleFor('googleLogoImage')}
+                  className={this.classNameFor('googleLogoImage')}
+                />
+              </div>)
+            }
           </div>
         )}
       </div>
@@ -323,6 +338,8 @@ PlacesAutocomplete.propTypes = {
   }),
   debounce: PropTypes.number,
   highlightFirstSuggestion: PropTypes.bool,
+  googleLogo: PropTypes.bool,
+  googleLogoType: PropTypes.oneOf(["default", "inverse"]),
 }
 
 PlacesAutocomplete.defaultProps = {
@@ -334,6 +351,8 @@ PlacesAutocomplete.defaultProps = {
   options: {},
   debounce: 200,
   highlightFirstSuggestion: false,
+  googleLogo: true,
+  googleLogoType: 'default',
 }
 
 export default PlacesAutocomplete
