@@ -84,20 +84,20 @@ describe('autocomplete dropdown', () => {
         index: 2
       }
     ]
-    wrapper.setState({ autocompleteItems: data })
+    wrapper.setState({ results: data })
     expect(wrapper.find('#PlacesAutocomplete__autocomplete-container')).to.have.length(1)
     expect(wrapper.find('.autocomplete-item')).to.have.length(3)
 
     describe('the Google logo', () => {
       it('is displayed by default', () => {
         wrapper = shallow(<PlacesAutocomplete inputProps={testInputProps} autocompleteItem={autocompleteItem} />)
-        wrapper.setState({ autocompleteItems: data })
+        wrapper.setState({ results: data })
         expect(wrapper.find('#PlacesAutocomplete__google-logo')).to.have.length(1)
       })
 
       it('is not displayed when toggled off', () => {
         wrapper = shallow(<PlacesAutocomplete inputProps={testInputProps} autocompleteItem={autocompleteItem} googleLogo={false} />)
-        wrapper.setState({ autocompleteItems: data })
+        wrapper.setState({ results: data })
         expect(wrapper.find('#PlacesAutocomplete__google-logo')).to.have.length(0)
       })
     })
@@ -111,7 +111,7 @@ describe('autocomplete dropdown', () => {
         index: 0
     }]
     const wrapper = shallow(<PlacesAutocomplete inputProps={testInputProps} clearItemsOnError={true}/>)
-    wrapper.setState({ autocompleteItems: initialItems })
+    wrapper.setState({ results: initialItems })
     wrapper.instance().autocompleteCallback([], 'ZERO_RESULTS')
     expect(wrapper.find('.autocomplete-item')).to.have.length(0)
   })
@@ -123,7 +123,7 @@ describe('autocomplete dropdown', () => {
         active: false,
         index: 0
     }]
-    wrapper.setState({ autocompleteItems: initialItems })
+    wrapper.setState({ results: initialItems })
     wrapper.instance().autocompleteCallback([], 'ZERO_RESULTS')
     expect(wrapper.find('.autocomplete-item')).to.have.length(1)
   })
@@ -156,7 +156,7 @@ describe('custom classNames, placeholder', () => {
   })
 
   it('lets you set a custom className for autocomplete container', () => {
-    wrapper.setState({ autocompleteItems: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
+    wrapper.setState({ results: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
     expect(wrapper.find('#PlacesAutocomplete__autocomplete-container')).to.have.className('my-autocomplete-container')
   })
 
@@ -170,7 +170,7 @@ describe('customizable autocompleteItem', () => {
   it('lets you provide a custom autocomplete item', () => {
     const autocompleteItem = ({ suggestion }) => (<div className="my-autocomplete-item"><i className="fa fa-map-marker"/></div>)
     const wrapper = shallow(<PlacesAutocomplete inputProps={testInputProps} autocompleteItem={autocompleteItem}/>)
-    wrapper.setState({ autocompleteItems: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
+    wrapper.setState({ results: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
     expect(wrapper.find('.my-autocomplete-item')).to.have.length(1)
     expect(wrapper.find('.my-autocomplete-item')).to.contain(<i className="fa fa-map-marker"/>)
   })
@@ -200,18 +200,18 @@ describe('custom inline styles', () => {
   })
 
   it('lets you set custom styles for the autocomplete container element', () => {
-    wrapper.setState({ autocompleteItems: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
+    wrapper.setState({ results: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
     expect(wrapper.find('#PlacesAutocomplete__autocomplete-container').props().style.backgroundColor).to.equal('green')
   })
 
   it('lets you set custom styles for autocomplete items', () => {
-    wrapper.setState({ autocompleteItems: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
+    wrapper.setState({ results: [{ suggestion: 'San Francisco, CA', placeId: 1, active: false, index: 0 }] })
     const item = wrapper.find("#PlacesAutocomplete__autocomplete-container").childAt(0)
     expect(item.props().style.color).to.equal('black')
   })
 
   it('lets you set custom styles for active autocomplete items', () => {
-    wrapper.setState({ autocompleteItems: [{ suggestion: 'San Francisco, CA', placeId: 1, active: true, index: 0 }] })
+    wrapper.setState({ results: [{ suggestion: 'San Francisco, CA', placeId: 1, active: true, index: 0 }] })
     const item = wrapper.find("#PlacesAutocomplete__autocomplete-container").childAt(0)
     expect(item.props().style.color).to.equal('blue')
   })

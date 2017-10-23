@@ -13,12 +13,13 @@ class PlacesAutocomplete extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { autocompleteItems: [] }
+    this.state = { results: [] }
 
     this.autocompleteCallback = this.autocompleteCallback.bind(this)
     this.handleInputKeyDown = this.handleInputKeyDown.bind(this)
     this.handleInputChange = this.handleInputChange.bind(this)
     this.debouncedFetchPredictions = debounce(this.fetchPredictions, this.props.debounce)
+    this.onSearchCallback = this.onSearchCallback.bind(this)
   }
 
   componentDidMount() {
@@ -47,31 +48,47 @@ class PlacesAutocomplete extends Component {
       secondaryText: structured_formatting.secondary_text,
     })
 
-    const { highlightFirstSuggestion } = this.props
+    const { highlightFirstSuggestion, inputProps } = this.props
 
-    this.setState({
-      autocompleteItems: predictions.map((p, idx) => ({
-        suggestion: p.description,
-        placeId: p.place_id,
-        active: (highlightFirstSuggestion && idx === 0 ? true : false),
-        index: idx,
-        formattedSuggestion: formattedSuggestion(p.structured_formatting),
-      }))
-    })
+    let formattedResults = predictions.map((p, idx) => ({
+      suggestion: p.description,
+      placeId: p.place_id,
+      formattedSuggestion: formattedSuggestion(p.structured_formatting),
+    }))
+
+    // Generic Search Handler
+    if(this.props.onSearch) {
+      this.props.onSearch({ query: inputProps.value, results: formattedResults }, this.onSearchCallback)
+    } else {
+      // No extra handling of results before display
+      this.onSearchCallback(formattedResults)
+    }
+  }
+
+  onSearchCallback(results) {
+    if(this.props.highlightFirstSuggestion && results && results.length > 0) {
+      results[0].active = true
+    }
+
+    this.setState({ results })
   }
 
   fetchPredictions() {
     const { value } = this.props.inputProps
+
     if (value.length) {
+      
+      // Google Results
       this.autocompleteService.getPlacePredictions({
         ...this.props.options,
         input: value
       }, this.autocompleteCallback)
+
     }
   }
 
   clearAutocomplete() {
-    this.setState({ autocompleteItems: [] })
+    this.setState({ results: [] })
   }
 
   selectAddress(address, placeId) {
@@ -84,11 +101,11 @@ class PlacesAutocomplete extends Component {
   }
 
   getActiveItem() {
-    return this.state.autocompleteItems.find(item => item.active)
+    return this.state.results.find(item => item.active)
   }
 
   selectActiveItemAtIndex(index) {
-    const activeName = this.state.autocompleteItems.find(item => item.index === index).suggestion
+    const activeName = this.state.results[index].suggestion
     this.setActiveItemAtIndex(index)
     this.props.inputProps.onChange(activeName)
   }
@@ -112,7 +129,7 @@ class PlacesAutocomplete extends Component {
   }
 
   handleDownKey() {
-    if (this.state.autocompleteItems.length === 0) {
+    if (this.state.results.length === 0) {
       return
     }
 
@@ -120,25 +137,26 @@ class PlacesAutocomplete extends Component {
     if (activeItem === undefined) {
       this.selectActiveItemAtIndex(0)
     } else {
-      const nextIndex = (activeItem.index + 1) % this.state.autocompleteItems.length
+      const currentIndex = this.state.results.indexOf(activeItem)
+      const nextIndex = (currentIndex + 1) % this.state.results.length
       this.selectActiveItemAtIndex(nextIndex)
     }
   }
 
   handleUpKey() {
-    if (this.state.autocompleteItems.length === 0) {
+    if (this.state.results.length === 0) {
       return
     }
-
     const activeItem = this.getActiveItem()
+    const currentIndex = this.state.results.indexOf(activeItem)
     if (activeItem === undefined) {
-      this.selectActiveItemAtIndex(this.state.autocompleteItems.length - 1)
+      this.selectActiveItemAtIndex(this.state.results.length - 1)
     } else {
       let prevIndex
-      if (activeItem.index === 0) {
-        prevIndex = this.state.autocompleteItems.length - 1
+      if (currentIndex === 0) {
+        prevIndex = this.state.results.length - 1
       } else {
-        prevIndex = (activeItem.index - 1) % this.state.autocompleteItems.length
+        prevIndex = (currentIndex - 1) % this.state.results.length
       }
       this.selectActiveItemAtIndex(prevIndex)
     }
@@ -170,7 +188,7 @@ class PlacesAutocomplete extends Component {
 
   setActiveItemAtIndex(index) {
     this.setState({
-      autocompleteItems: this.state.autocompleteItems.map((item, idx) => {
+      results: this.state.results.map((item, idx) => {
         if (idx === index) {
           return { ...item, active: true }
         } else {
@@ -247,7 +265,7 @@ class PlacesAutocomplete extends Component {
 
   render() {
     const { classNames, styles } = this.props
-    const { autocompleteItems } = this.state
+    const { results } = this.state
     const inputProps = this.getInputProps()
 
     return (
@@ -256,21 +274,21 @@ class PlacesAutocomplete extends Component {
         style={this.inlineStyleFor('root')}
         className={this.classNameFor('root')}>
         <input {...inputProps} />
-        {autocompleteItems.length > 0 && (
+        {results.length > 0 && (
           <div
             id="PlacesAutocomplete__autocomplete-container"
             style={this.inlineStyleFor('autocompleteContainer')}
             className={this.classNameFor('autocompleteContainer')}>
-            {autocompleteItems.map((p, idx) => (
+            {results.map((p, idx) => (
               <div
                 key={p.placeId}
-                onMouseOver={() => this.setActiveItemAtIndex(p.index)}
+                onMouseOver={() => this.setActiveItemAtIndex(idx)}
                 onMouseDown={() => this.selectAddress(p.suggestion, p.placeId)}
-                onTouchStart={() => this.setActiveItemAtIndex(p.index)}
+                onTouchStart={() => this.setActiveItemAtIndex(idx)}
                 onTouchEnd={() => this.selectAddress(p.suggestion, p.placeId)}
                 style={ p.active ? this.inlineStyleFor('autocompleteItem', 'autocompleteItemActive') :this.inlineStyleFor('autocompleteItem') }
                 className={ p.active ? this.classNameFor('autocompleteItem', 'autocompleteItemActive') : this.classNameFor('autocompleteItem') }>
-                {this.props.autocompleteItem({ suggestion: p.suggestion, formattedSuggestion: p.formattedSuggestion })}
+                {this.props.autocompleteItem(p)}
               </div>
             ))}
             {this.props.googleLogo && (
@@ -294,7 +312,7 @@ class PlacesAutocomplete extends Component {
 
 PlacesAutocomplete.propTypes = {
   inputProps: (props, propName) => {
-    const inputProps = props[propName];
+    const inputProps = props[propName]
 
     if (!inputProps.hasOwnProperty('value')) {
       throw new Error('\'inputProps\' must have \'value\'.')

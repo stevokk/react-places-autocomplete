@@ -13,6 +13,27 @@ class Demo extends React.Component {
     this.handleChange = this.handleChange.bind(this)
     this.renderGeocodeFailure = this.renderGeocodeFailure.bind(this)
     this.renderGeocodeSuccess = this.renderGeocodeSuccess.bind(this)
+
+    this.getPreferredResults = this.getPreferredResults.bind(this)
+
+    this.preferredLocations = [
+      {
+        suggestion: 'Apple Campus, Cupertino, CA, United States',
+        placeId: 'ChIJt00z67a1j4ARL8h-xOZ1XVo',
+        formattedSuggestion: {
+          mainText: 'Apple',
+          secondaryText: 'Cupertino'
+        }
+      },
+      {
+        suggestion: 'Facebook HQ, Hacker Way, Menlo Park, CA, United States',
+        placeId: 'ChIJZa6ezJa8j4AR1p1nTSaRtuQ',
+        formattedSuggestion: {
+          mainText: 'Facebook',
+          secondaryText: 'Menlo Park'
+        }
+      },
+    ]
   }
 
   handleSelect(address) {
@@ -62,6 +83,21 @@ class Demo extends React.Component {
     })
   }
 
+  getPreferredResults({ query, results }, callback) {
+    query = query.toLowerCase()
+    let preferredResults =
+        this.preferredLocations
+          .filter(location => location.suggestion.toLowerCase().indexOf(query) !== -1)
+          .map(({ suggestion, placeId, formattedSuggestion }, idx) => ({
+            suggestion,
+            placeId,
+            formattedSuggestion,
+            preferred: true
+          }))
+
+    callback(preferredResults.concat(results))
+  }
+
   renderGeocodeFailure(err) {
     return (
       <div className="alert alert-danger" role="alert">
@@ -85,9 +121,9 @@ class Demo extends React.Component {
       autocompleteContainer: 'Demo__autocomplete-container',
     }
 
-    const AutocompleteItem = ({ formattedSuggestion }) => (
+    const AutocompleteItem = ({ formattedSuggestion, preferred }) => (
       <div className="Demo__suggestion-item">
-        <i className='fa fa-map-marker Demo__suggestion-icon'/>
+        <i className={(preferred ? 'fa-star' : 'fa-map-marker') + ' fa Demo__suggestion-icon'} />
         <strong>{formattedSuggestion.mainText}</strong>{' '}
         <small className="text-muted">{formattedSuggestion.secondaryText}</small>
       </div>)
@@ -122,6 +158,8 @@ class Demo extends React.Component {
             onEnterKeyDown={this.handleSelect}
             classNames={cssClasses}
             inputProps={inputProps}
+            onSearch={this.getPreferredResults}
+            googleLogo={false}
           />
           {this.state.loading ? <div><i className="fa fa-spinner fa-pulse fa-3x fa-fw Demo__spinner" /></div> : null}
           {!this.state.loading && this.state.geocodeResults ?
