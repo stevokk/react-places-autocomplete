@@ -85,16 +85,19 @@ class Demo extends React.Component {
 
   getPreferredResults({ query, results }, callback) {
     query = query.toLowerCase()
-    let preferredResults =
-        this.preferredLocations
-          .filter(location => location.suggestion.toLowerCase().indexOf(query) !== -1)
-          .map(({ suggestion, placeId, formattedSuggestion }, idx) => ({
-            suggestion,
-            placeId,
-            formattedSuggestion,
-            preferred: true
-          }))
-
+    let preferredResults = this.preferredLocations
+          .filter(location => {
+            return location.suggestion.toLowerCase().indexOf(query) !== -1
+          })
+          .map(({ suggestion, placeId, formattedSuggestion }, idx) => {
+            return {
+              suggestion,
+              placeId,
+              formattedSuggestion,
+              preferred: true
+            }
+          })
+          
     callback(preferredResults.concat(results))
   }
 
