@@ -117,6 +117,7 @@ export default SimpleForm
 * [`highlightFirstSuggestion`](#highlightFirstSuggestion)
 * [`googleLogo`](#googleLogo)
 * [`googleLogoType`](#googleLogoType)
+* [`onSearch`](#onSearch)
 
 <a name="inputProps"></a>
 #### inputProps
@@ -406,6 +407,18 @@ Default: `"default"`
 
 Allows you to pick right color theme for "powered by Google" logo.
 Please see Google's API page for more information: [https://developers.google.com/places/web-service/policies](https://developers.google.com/places/web-service/policies)
+
+
+<a name="onSearch"></a>
+#### onSearch
+Type: `Function`
+Required: `false`
+
+You can pass `onSearch` prop to customize the behavior when the returned results from Google want to be intercepted (e.g. injecting extra results or filtering existing ones)
+
+Function gets called with two parameters: ({ query, results }, callback)
+
+After any logic you implement, call the callback function passing the results array. You are able to return additional fields that will be available in the item template on render.
 
 <a name="utility-functions"></a>
 ## Utility Functions
