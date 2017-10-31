@@ -36,11 +36,7 @@ class PlacesAutocomplete extends Component {
   }
 
   autocompleteCallback(predictions, status) {
-    if (status != this.autocompleteOK) {
-      this.props.onError(status)
-      if (this.props.clearItemsOnError) { this.clearAutocomplete() }
-      return
-    }
+    const { highlightFirstSuggestion, inputProps, onSearch, clearItemsOnError, onError } = this.props
 
     // transform snake_case to camelCase
     const formattedSuggestion = (structured_formatting) => ({
@@ -48,20 +44,28 @@ class PlacesAutocomplete extends Component {
       secondaryText: structured_formatting.secondary_text,
     })
 
-    const { highlightFirstSuggestion, inputProps } = this.props
-
-    let formattedResults = predictions.map((p, idx) => ({
-      suggestion: p.description,
-      placeId: p.place_id,
-      formattedSuggestion: formattedSuggestion(p.structured_formatting),
-    }))
+    if (status !== this.autocompleteOK) {
+      onError(status)
+      // Allow preserving of old results, but limited to when there is no post callback modification
+      // As we don't cache the original results and would be modifying an already changed set of results
+      // TODO: Need to solve this issue.
+      predictions = clearItemsOnError || onSearch ? [] : this.state.results
+    } else {
+      // Only need to map if we're recieving results from Google
+      predictions = predictions.map((p, idx) => ({
+        suggestion: p.description,
+        placeId: p.place_id,
+        formattedSuggestion: formattedSuggestion(p.structured_formatting),
+      }))
+    }
 
     // Generic Search Handler
-    if(this.props.onSearch) {
-      this.props.onSearch({ query: inputProps.value, results: formattedResults }, this.onSearchCallback)
+    if(onSearch) {
+      // Fired even when Google returns an error
+      onSearch({ query: inputProps.value, results: predictions }, this.onSearchCallback)
     } else {
       // No extra handling of results before display
-      this.onSearchCallback(formattedResults)
+      this.onSearchCallback(predictions)
     }
   }
 
@@ -281,7 +285,7 @@ class PlacesAutocomplete extends Component {
             className={this.classNameFor('autocompleteContainer')}>
             {results.map((p, idx) => (
               <div
-                key={p.placeId}
+                key={idx}
                 onMouseOver={() => this.setActiveItemAtIndex(idx)}
                 onMouseDown={() => this.selectAddress(p.suggestion, p.placeId)}
                 onTouchStart={() => this.setActiveItemAtIndex(idx)}

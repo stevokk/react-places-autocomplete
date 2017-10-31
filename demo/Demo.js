@@ -18,7 +18,7 @@ class Demo extends React.Component {
 
     this.preferredLocations = [
       {
-        suggestion: 'Apple Campus, Cupertino, CA, United States',
+        suggestion: 'Apple Campus1234, Cupertino, CA, United States',
         placeId: 'ChIJt00z67a1j4ARL8h-xOZ1XVo',
         formattedSuggestion: {
           mainText: 'Apple',

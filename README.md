@@ -301,6 +301,8 @@ Default: `false`
 
 You can pass `clearItemsOnError` prop to indicate whether the autocomplete predictions should be cleared when `google.maps.places.PlacesServiceStatus` is not OK
 
+This will __NOT__ work when used in conjunction with the `onSearch` callback to due the nature of it's implementation causing a potentially already processed set of results to be passed back to `onSearch`, leading to possible duplicates and general loss of predictability. 
+
 <a name="onSelect"></a>
 #### onSelect
 Type: `Function`
@@ -419,6 +421,8 @@ You can pass `onSearch` prop to customize the behavior when the returned results
 Function gets called with two parameters: ({ query, results }, callback)
 
 After any logic you implement, call the callback function passing the results array. You are able to return additional fields that will be available in the item template on render.
+
+__NOTE:__ Using this will disable the functionality of `clearItemsOnError` as it currently conflicts behaviour wise.
 
 <a name="utility-functions"></a>
 ## Utility Functions
